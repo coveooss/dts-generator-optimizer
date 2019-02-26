@@ -1,0 +1,24 @@
+{
+    "name": "dts-generator-optimizer",
+    "version": "0.0.1",
+    "description": "Optimizes typescript declaration files generated using dts-generator",
+    "main": "index.js",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/coveo/dts-generator-optimizer.git"
+    },
+    "keywords": [
+        "typescript",
+        "gulp",
+        "types",
+        "dts-generator",
+        "declaration",
+        "files"
+    ],
+    "author": "Coveo",
+    "license": "Apache-2.0",
+    "bugs": {
+        "url": "https://github.com/coveo/dts-generator-optimizer/issues"
+    },
+    "homepage": "https://github.com/coveo/dts-generator-optimizer#readme"
+}
