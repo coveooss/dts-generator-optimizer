@@ -20,5 +20,8 @@
     "bugs": {
         "url": "https://github.com/coveo/dts-generator-optimizer/issues"
     },
-    "homepage": "https://github.com/coveo/dts-generator-optimizer#readme"
+    "homepage": "https://github.com/coveo/dts-generator-optimizer#readme",
+    "dependencies": {
+        "through2": "^3.0.0"
+    }
 }
