@@ -4,11 +4,13 @@ const externalImports = [];
 
 const BLANKLINES = /^\s*[\r\n]/gm;
 const IMPORTS = /import\s+(.+from\s+)?'(.+).*';/gm;
+const DYNAMIC_IMPORTS = /import\(['"]([\w./-]+)['"]\)\.(\w+)/g;
 const REFERENCES = /\s*\/\/\/\s+<reference\s+.*\/>/gm;
 const INNER_MODULE_DECLARATION = /}\ndeclare\smodule\s+.*{\n/g;
 const OUTER_MODULE_DECLARATION = /^declare\smodule\s+.*{$/gm;
 const PRIVATES = /private .+;$/gm;
 const EXPORTS = /export (?:default )?(.*)$/gm;
+const RELATIVE_PATH = /^\.?\.\/.+$/;
 
 /**
  * @param {Object} config - The configuration options
@@ -22,6 +24,7 @@ module.exports = function (config) {
         const content = transformedFile.contents.toString(encoding)
             .replace(PRIVATES, '')
             .replace(EXPORTS, '$1')
+            .replace(DYNAMIC_IMPORTS, (...regExpArgs) => parseDynamicImports(regExpArgs, config))
             .replace(IMPORTS, (...regExpArgs) => parseImportStatement(regExpArgs, config))
             .replace(REFERENCES, '')
             .replace(BLANKLINES, '')
@@ -42,6 +45,16 @@ module.exports = function (config) {
     });
 }
 
+function parseDynamicImports(regExpArgs, config) {
+    const [, importPath, importMember] = regExpArgs;
+
+    if (!isInternalImport(importPath, config)) {
+        handleExternalImport(`import { ${importMember} } from ${importPath};`)
+    }
+
+    return importMember;
+}
+
 function parseImportStatement(regExpArgs, config) {
     const [statement, _, path] = regExpArgs;
 
@@ -53,11 +66,12 @@ function parseImportStatement(regExpArgs, config) {
 }
 
 function isInternalImport(path, {internalImportPaths = []}) {
+    const matchers = [...internalImportPaths, RELATIVE_PATH];
     let isInternalPath = false;
 
-    for (let internalPath of internalImportPaths) {
-        const re = new RegExp(internalPath);
-        if (path.match(re)) {
+    for (let matcher of matchers) {
+        const expression = new RegExp(matcher);
+        if (path.match(expression)) {
             isInternalPath = true;
             break;
         }

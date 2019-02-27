@@ -4,6 +4,7 @@ Integrates with gulp to optimizes typescript declaration files generated with [d
 ## What it does
 - Remove `private` class members declarations;
 - Remove all internal `export` statements;
+- Parses all dynamic `import()` statements, removes inline imports, and injects external import paths to the top of the file;
 - Parses all external `import` statements, removes duplicates among them, and injects the result in alphabetical order at the top of the file;
 - Removes `/// <references />` directives;
 - Compresses all `declare module 'internal/path/in/project' {...}` statements inside a single `declare module ${moduleName} {...}` statement;
