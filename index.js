@@ -1,6 +1,11 @@
 const through = require('through2');
 
-const externalImports = [];
+const externalImports = {};
+const defaultImportObj = {
+    members: [],
+    path: '',
+    global: '',
+};
 
 const BLANKLINES = /^\s*[\r\n]/gm;
 const IMPORTS = /import\s+(.+from\s+)?'(.+).*';/gm;
@@ -11,6 +16,7 @@ const OUTER_MODULE_DECLARATION = /^declare\smodule\s+.*{$/gm;
 const PRIVATES = /private .+;$/gm;
 const EXPORTS = /export (?:default )?(.*)$/gm;
 const RELATIVE_PATH = /^\.?\.\/.+$/;
+const DESTRUCTURE_IMPORT = /(?:(?:(\*\sas\s\w+)|{\s(.+)\s})\sfrom\s)?'([\w./-]+)'/;
 
 /**
  * @param {Object} config - The configuration options
@@ -49,7 +55,7 @@ function parseDynamicImports(regExpArgs, config) {
     const [, importPath, importMember] = regExpArgs;
 
     if (!isInternalImport(importPath, config)) {
-        handleExternalImport(`import { ${importMember} } from ${importPath};`)
+        handleExternalImport(formatImport(`{ ${importMember} }`, importPath));
     }
 
     return importMember;
@@ -81,13 +87,50 @@ function isInternalImport(path, {internalImportPaths = []}) {
 }
 
 function handleExternalImport(statement) {
-    if (externalImports.indexOf(statement) < 0) {
-        externalImports.push(statement);
+    const [, globalImport, members, path] = DESTRUCTURE_IMPORT.exec(statement);
+    const importObj = Object.assign({}, defaultImportObj, externalImports[path]);
+
+    importObj.path = importObj.path || path || '';
+    importObj.global = importObj.global || globalImport || '';
+    importObj.members = [...importObj.members];
+
+    if (members && typeof members === 'string') {
+        const memberCandidates = members.split(/,\s?/);
+        memberCandidates.forEach((candidate) => {
+            if (importObj.members.indexOf(candidate) < 0) {
+                importObj.members.push(candidate);
+            }
+        });
     }
+
+    externalImports[path] = importObj;
 }
 
 function getExternalImports() {
-    return externalImports.sort().join('\n') + '\n';
+    return Object.keys(externalImports).reduce(formatImportObjToString, []).sort().join('\n') + '\n';
+}
+
+function formatImportObjToString(memo, importPath) {
+    const {global, members, path} = externalImports[importPath];
+
+    if (!!global) {
+        memo.push(formatImport(global, path));
+    }
+
+    if (members.length > 0) {
+        memo.push(formatImport(`{ ${members.join(', ')} }`, path));
+    }
+
+    if (!global && members.length === 0) {
+        memo.push(formatImport('', path));
+    }
+
+    return memo;
+}
+
+function formatImport(target, path) {
+    const from = target ? ' from ' : '';
+    return `import ${target}${from}'${path}';`;
 }
 
 function getExportDirectives({moduleName = ''}) {
