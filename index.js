@@ -16,7 +16,12 @@ const OUTER_MODULE_DECLARATION = /^declare\smodule\s+.*{$/gm;
 const PRIVATES = /private .+;$/gm;
 const EXPORTS = /export (?:default )?(.*)$/gm;
 const RELATIVE_PATH = /^\.?\.\/.+$/;
-const DESTRUCTURE_IMPORT = /(?:(?:(\*\sas\s\w+)|{\s(.+)\s})\sfrom\s)?'([\w./-]+)'/;
+const DESTRUCTURE_IMPORT = /(?:(?:(\*\sas\s\w+)|{\s(.+)\s})\sfrom\s)?'([\w./@-]+)'/;
+
+const Colors = {
+    RESET: '\x1b[0m',
+    RED: '\x1b[31m',
+};
 
 /**
  * @param {Object} config - The configuration options
@@ -87,23 +92,29 @@ function isInternalImport(path, {internalImportPaths = []}) {
 }
 
 function handleExternalImport(statement) {
-    const [, globalImport, members, path] = DESTRUCTURE_IMPORT.exec(statement);
-    const importObj = Object.assign({}, defaultImportObj, externalImports[path]);
-
-    importObj.path = importObj.path || path || '';
-    importObj.global = importObj.global || globalImport || '';
-    importObj.members = [...importObj.members];
-
-    if (members && typeof members === 'string') {
-        const memberCandidates = members.split(/,\s?/);
-        memberCandidates.forEach((candidate) => {
-            if (importObj.members.indexOf(candidate) < 0) {
-                importObj.members.push(candidate);
-            }
-        });
+    const matches = DESTRUCTURE_IMPORT.exec(statement);
+    
+    if (matches) {
+        const [, globalImport, members, path] = matches;
+        const importObj = Object.assign({}, defaultImportObj, externalImports[path]);
+    
+        importObj.path = importObj.path || path || '';
+        importObj.global = importObj.global || globalImport || '';
+        importObj.members = [...importObj.members];
+    
+        if (members && typeof members === 'string') {
+            const memberCandidates = members.split(/,\s?/);
+            memberCandidates.forEach((candidate) => {
+                if (importObj.members.indexOf(candidate) < 0) {
+                    importObj.members.push(candidate);
+                }
+            });
+        }
+    
+        externalImports[path] = importObj;
+    } else {
+        console.error(Colors.RED, `Unrecognized import path character in "${statement}"`, Colors.RESET);
     }
-
-    externalImports[path] = importObj;
 }
 
 function getExternalImports() {
