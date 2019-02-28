@@ -22,7 +22,7 @@
     },
     "homepage": "https://github.com/coveo/dts-generator-optimizer#readme",
     "scripts": {
-        "lintfix": "prettier --config .prettierrc.yml --write **/*.js"
+        "lintfix": "npx prettier --config .prettierrc.yml --write **/*.js"
     },
     "pre-commit": [
         "lintfix"
@@ -31,6 +31,9 @@
         "through2": "3.0.0"
     },
     "devDependencies": {
+        "eslint": "5.14.1",
+        "eslint-config-prettier": "4.1.0",
+        "eslint-plugin-prettier": "3.0.1",
         "pre-commit": "1.2.2",
         "prettier": "1.16.4"
     }
