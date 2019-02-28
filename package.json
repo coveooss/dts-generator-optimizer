@@ -21,7 +21,17 @@
         "url": "https://github.com/coveo/dts-generator-optimizer/issues"
     },
     "homepage": "https://github.com/coveo/dts-generator-optimizer#readme",
+    "scripts": {
+        "lintfix": "prettier --config .prettierrc.yml --write **/*.js"
+    },
+    "pre-commit": [
+        "lintfix"
+    ],
     "dependencies": {
         "through2": "^3.0.0"
+    },
+    "devDependencies": {
+        "pre-commit": "^1.2.2",
+        "prettier": "1.16.4"
     }
 }
