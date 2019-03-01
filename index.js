@@ -4,7 +4,7 @@ const externalImports = {};
 const defaultImportObj = {
     members: [],
     path: '',
-    global: ''
+    global: '',
 };
 
 const BLANKLINES = /^\s*[\r\n]/gm;
@@ -20,7 +20,7 @@ const DESTRUCTURE_IMPORT = /(?:(?:(\*\sas\s\w+)|{\s(.+)\s})\sfrom\s)?'([\w./@-]+
 
 const Colors = {
     RESET: '\x1b[0m',
-    RED: '\x1b[31m'
+    RED: '\x1b[31m',
 };
 
 /**
