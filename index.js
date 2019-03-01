@@ -28,11 +28,12 @@ const Colors = {
  * @param {string} [config.moduleName = ''] - The name of the module to export
  * @param {RegExp[]} [config.internalImportPaths = []] - The internal import paths that will be parsed out
  */
-module.exports = function (config) {
-    return through.obj(function (vinylFile, encoding, callback) {
+module.exports = config =>
+    through.obj((vinylFile, encoding, callback) => {
         const transformedFile = vinylFile.clone();
 
-        const content = transformedFile.contents.toString(encoding)
+        const content = transformedFile.contents
+            .toString(encoding)
             .replace(PRIVATES, '')
             .replace(EXPORTS, '$1')
             .replace(DYNAMIC_IMPORTS, (...regExpArgs) => parseDynamicImports(regExpArgs, config))
@@ -44,17 +45,12 @@ module.exports = function (config) {
             .replace(BLANKLINES, '');
 
         transformedFile.contents = Buffer.from(
-            getExternalImports()
-            + '\n' +
-            getExportDirectives(config)
-            + '\n' +
-            content,
+            getExternalImports() + '\n' + getExportDirectives(config) + '\n' + content,
             encoding
         );
 
         callback(null, transformedFile);
     });
-}
 
 function parseDynamicImports(regExpArgs, config) {
     const [, importPath, importMember] = regExpArgs;
@@ -86,31 +82,31 @@ function isInternalImport(path, {internalImportPaths = []}) {
             isInternalPath = true;
             break;
         }
-    };
+    }
 
     return isInternalPath;
 }
 
 function handleExternalImport(statement) {
     const matches = DESTRUCTURE_IMPORT.exec(statement);
-    
+
     if (matches) {
         const [, globalImport, members, path] = matches;
         const importObj = Object.assign({}, defaultImportObj, externalImports[path]);
-    
+
         importObj.path = importObj.path || path || '';
         importObj.global = importObj.global || globalImport || '';
         importObj.members = [...importObj.members];
-    
+
         if (members && typeof members === 'string') {
             const memberCandidates = members.split(/,\s?/);
-            memberCandidates.forEach((candidate) => {
+            memberCandidates.forEach(candidate => {
                 if (importObj.members.indexOf(candidate) < 0) {
                     importObj.members.push(candidate);
                 }
             });
         }
-    
+
         externalImports[path] = importObj;
     } else {
         console.error(Colors.RED, `Unrecognized import path character in "${statement}"`, Colors.RESET);
@@ -118,7 +114,12 @@ function handleExternalImport(statement) {
 }
 
 function getExternalImports() {
-    return Object.keys(externalImports).reduce(formatImportObjToString, []).sort().join('\n') + '\n';
+    return (
+        Object.keys(externalImports)
+            .reduce(formatImportObjToString, [])
+            .sort()
+            .join('\n') + '\n'
+    );
 }
 
 function formatImportObjToString(memo, importPath) {
@@ -145,7 +146,7 @@ function formatImport(target, path) {
 }
 
 function getExportDirectives({moduleName = ''}) {
-    return `export = ${moduleName};\nexport as namespace ${moduleName};\n`
+    return `export = ${moduleName};\nexport as namespace ${moduleName};\n`;
 }
 
 function getOuterModuleDeclaration({moduleName = ''}) {
