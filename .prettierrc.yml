@@ -2,3 +2,4 @@ tabWidth: 4
 railingComma: es5
 singleQuote: true
 bracketSpacing: false
+printWidth: 120

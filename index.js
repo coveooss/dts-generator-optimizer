@@ -36,27 +36,16 @@ module.exports = config =>
             .toString(encoding)
             .replace(PRIVATES, '')
             .replace(EXPORTS, '$1')
-            .replace(DYNAMIC_IMPORTS, (...regExpArgs) =>
-                parseDynamicImports(regExpArgs, config)
-            )
-            .replace(IMPORTS, (...regExpArgs) =>
-                parseImportStatement(regExpArgs, config)
-            )
+            .replace(DYNAMIC_IMPORTS, (...regExpArgs) => parseDynamicImports(regExpArgs, config))
+            .replace(IMPORTS, (...regExpArgs) => parseImportStatement(regExpArgs, config))
             .replace(REFERENCES, '')
             .replace(BLANKLINES, '')
             .replace(INNER_MODULE_DECLARATION, '')
-            .replace(
-                OUTER_MODULE_DECLARATION,
-                getOuterModuleDeclaration(config)
-            )
+            .replace(OUTER_MODULE_DECLARATION, getOuterModuleDeclaration(config))
             .replace(BLANKLINES, '');
 
         transformedFile.contents = Buffer.from(
-            getExternalImports() +
-                '\n' +
-                getExportDirectives(config) +
-                '\n' +
-                content,
+            getExternalImports() + '\n' + getExportDirectives(config) + '\n' + content,
             encoding
         );
 
@@ -103,11 +92,7 @@ function handleExternalImport(statement) {
 
     if (matches) {
         const [, globalImport, members, path] = matches;
-        const importObj = Object.assign(
-            {},
-            defaultImportObj,
-            externalImports[path]
-        );
+        const importObj = Object.assign({}, defaultImportObj, externalImports[path]);
 
         importObj.path = importObj.path || path || '';
         importObj.global = importObj.global || globalImport || '';
@@ -124,11 +109,7 @@ function handleExternalImport(statement) {
 
         externalImports[path] = importObj;
     } else {
-        console.error(
-            Colors.RED,
-            `Unrecognized import path character in "${statement}"`,
-            Colors.RESET
-        );
+        console.error(Colors.RED, `Unrecognized import path character in "${statement}"`, Colors.RESET);
     }
 }
 
