@@ -4,7 +4,7 @@ const externalImports = {};
 const defaultImportObj = {
     members: [],
     path: '',
-    global: '',
+    global: ''
 };
 
 const BLANKLINES = /^\s*[\r\n]/gm;
@@ -20,7 +20,7 @@ const DESTRUCTURE_IMPORT = /(?:(?:(\*\sas\s\w+)|{\s(.+)\s})\sfrom\s)?'([\w./@-]+
 
 const Colors = {
     RESET: '\x1b[0m',
-    RED: '\x1b[31m',
+    RED: '\x1b[31m'
 };
 
 /**
@@ -28,8 +28,8 @@ const Colors = {
  * @param {string} [config.moduleName = ''] - The name of the module to export
  * @param {RegExp[]} [config.internalImportPaths = []] - The internal import paths that will be parsed out
  */
-module.exports = function(config) {
-    return through.obj(function(vinylFile, encoding, callback) {
+module.exports = config =>
+    through.obj((vinylFile, encoding, callback) => {
         const transformedFile = vinylFile.clone();
 
         const content = transformedFile.contents
@@ -62,7 +62,6 @@ module.exports = function(config) {
 
         callback(null, transformedFile);
     });
-};
 
 function parseDynamicImports(regExpArgs, config) {
     const [, importPath, importMember] = regExpArgs;
@@ -84,7 +83,7 @@ function parseImportStatement(regExpArgs, config) {
     return '';
 }
 
-function isInternalImport(path, { internalImportPaths = [] }) {
+function isInternalImport(path, {internalImportPaths = []}) {
     const matchers = [...internalImportPaths, RELATIVE_PATH];
     let isInternalPath = false;
 
@@ -143,7 +142,7 @@ function getExternalImports() {
 }
 
 function formatImportObjToString(memo, importPath) {
-    const { global, members, path } = externalImports[importPath];
+    const {global, members, path} = externalImports[importPath];
 
     if (!!global) {
         memo.push(formatImport(global, path));
@@ -165,10 +164,10 @@ function formatImport(target, path) {
     return `import ${target}${from}'${path}';`;
 }
 
-function getExportDirectives({ moduleName = '' }) {
+function getExportDirectives({moduleName = ''}) {
     return `export = ${moduleName};\nexport as namespace ${moduleName};\n`;
 }
 
-function getOuterModuleDeclaration({ moduleName = '' }) {
+function getOuterModuleDeclaration({moduleName = ''}) {
     return `declare module ${moduleName} {`;
 }
