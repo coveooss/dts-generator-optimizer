@@ -24,7 +24,7 @@ const Colors = {
 
 /**
  * @param {Object} config - The configuration options
- * @param {string} [config.moduleName = ''] - The name of the module to export (should be the same as the package.json)
+ * @param {string} config.moduleName - The name of the module to export (should be the same as the package.json)
  * @param {string} [config.libraryName = ''] - The name of the exported UMD variable
  * @param {RegExp[]} [config.internalImportPaths = []] - The internal import paths that will be parsed out
  */
@@ -148,6 +148,6 @@ function getExportDirectives({libraryName = ''}) {
     return libraryName ? `export as namespace ${libraryName};\n` : '';
 }
 
-function getOuterModuleDeclaration({moduleName = ''}) {
+function getOuterModuleDeclaration({moduleName}) {
     return `declare module "${moduleName}" {`;
 }
