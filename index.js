@@ -145,9 +145,7 @@ function formatImport(target, path) {
 }
 
 function getExportDirectives({libraryName = ''}) {
-    return libraryName
-        ? `export as namespace ${libraryName};\n`
-        : '';
+    return libraryName ? `export as namespace ${libraryName};\n` : '';
 }
 
 function getOuterModuleDeclaration({moduleName = ''}) {
