@@ -14,7 +14,6 @@ const REFERENCES = /\s*\/\/\/\s+<reference\s+.*\/>/gm;
 const INNER_MODULE_DECLARATION = /}\ndeclare\smodule\s+.*{\n/g;
 const OUTER_MODULE_DECLARATION = /^declare\smodule\s+.*{$/gm;
 const PRIVATES = /private .+;$/gm;
-const EXPORTS = /export (?:default )?(.*)$/gm;
 const RELATIVE_PATH = /^\.?\.\/.+$/;
 const DESTRUCTURE_IMPORT = /(?:(?:(\*\sas\s\w+)|{\s(.+)\s})\sfrom\s)?'([\w./@-]+)'/;
 
@@ -25,7 +24,8 @@ const Colors = {
 
 /**
  * @param {Object} config - The configuration options
- * @param {string} [config.moduleName = ''] - The name of the module to export
+ * @param {string} [config.moduleName = ''] - The name of the module to export (should be the same as the package.json)
+ * @param {string} [config.libraryName = ''] - The name of the exported UMD variable
  * @param {RegExp[]} [config.internalImportPaths = []] - The internal import paths that will be parsed out
  */
 module.exports = config =>
@@ -35,7 +35,6 @@ module.exports = config =>
         const content = transformedFile.contents
             .toString(encoding)
             .replace(PRIVATES, '')
-            .replace(EXPORTS, '$1')
             .replace(DYNAMIC_IMPORTS, (...regExpArgs) => parseDynamicImports(regExpArgs, config))
             .replace(IMPORTS, (...regExpArgs) => parseImportStatement(regExpArgs, config))
             .replace(REFERENCES, '')
@@ -145,10 +144,12 @@ function formatImport(target, path) {
     return `import ${target}${from}'${path}';`;
 }
 
-function getExportDirectives({moduleName = ''}) {
-    return `export = ${moduleName};\nexport as namespace ${moduleName};\n`;
+function getExportDirectives({libraryName = ''}) {
+    return libraryName
+        ? `export as namespace ${libraryName};\n`
+        : '';
 }
 
 function getOuterModuleDeclaration({moduleName = ''}) {
-    return `declare module ${moduleName} {`;
+    return `declare module "${moduleName}" {`;
 }
