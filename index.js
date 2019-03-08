@@ -11,11 +11,14 @@ const BLANKLINES = /^\s*[\r\n]/gm;
 const IMPORTS = /import\s+(.+from\s+)?'(.+).*';/gm;
 const DYNAMIC_IMPORTS = /import\(['"]([\w./-]+)['"]\)\.(\w+)/g;
 const REFERENCES = /\s*\/\/\/\s+<reference\s+.*\/>/gm;
+const DEFAULT_EXPORTS = /export\sdefault\s.*$/gm;
 const INNER_MODULE_DECLARATION = /}\ndeclare\smodule\s+.*{\n/g;
-const OUTER_MODULE_DECLARATION = /^declare\smodule\s+.*{$/gm;
+const OUTER_MODULE_DECLARATION = /^declare\smodule\s.+{\s([\s\S]*)}/;
 const PRIVATES = /private .+;$/gm;
 const RELATIVE_PATH = /^\.?\.\/.+$/;
 const DESTRUCTURE_IMPORT = /(?:(?:(\*\sas\s\w+)|{\s(.+)\s})\sfrom\s)?'([\w./@-]+)'/;
+const TAB_INDENT = /^\t{1}/gm;
+const EMPTY_BRACES = /{$[\s]+}/gm;
 
 const Colors = {
     RESET: '\x1b[0m',
@@ -24,9 +27,9 @@ const Colors = {
 
 /**
  * @param {Object} config - The configuration options
- * @param {string} config.moduleName - The name of the module to export (should be the same as the package.json)
  * @param {string} [config.libraryName = ''] - The name of the exported UMD variable
  * @param {RegExp[]} [config.internalImportPaths = []] - The internal import paths that will be parsed out
+ * @param {string[]} [config.externalTypesToExport = []] - The external library names whose types need to be exported
  */
 module.exports = config =>
     through.obj((vinylFile, encoding, callback) => {
@@ -38,9 +41,11 @@ module.exports = config =>
             .replace(DYNAMIC_IMPORTS, (...regExpArgs) => parseDynamicImports(regExpArgs, config))
             .replace(IMPORTS, (...regExpArgs) => parseImportStatement(regExpArgs, config))
             .replace(REFERENCES, '')
+            .replace(DEFAULT_EXPORTS, '')
             .replace(BLANKLINES, '')
             .replace(INNER_MODULE_DECLARATION, '')
-            .replace(OUTER_MODULE_DECLARATION, getOuterModuleDeclaration(config))
+            .replace(OUTER_MODULE_DECLARATION, (...regExpArgs) => getOuterModuleDeclaration(regExpArgs))
+            .replace(EMPTY_BRACES, '{}')
             .replace(BLANKLINES, '');
 
         transformedFile.contents = Buffer.from(
@@ -144,10 +149,19 @@ function formatImport(target, path) {
     return `import ${target}${from}'${path}';`;
 }
 
-function getExportDirectives({libraryName = ''}) {
-    return libraryName ? `export as namespace ${libraryName};\n` : '';
+function formatExport(libName) {
+    return `export * from '${libName}';`;
 }
 
-function getOuterModuleDeclaration({moduleName}) {
-    return `declare module "${moduleName}" {`;
+function getExportDirectives({libraryName = '', externalTypesToExport = []}) {
+    const UMDexport = libraryName ? `export as namespace ${libraryName};\n` : '';
+    const externalTypes = externalTypesToExport.length ? externalTypesToExport.map(formatExport).join('\n') + '\n' : '';
+
+    return `${externalTypes}${UMDexport}`;
+}
+
+function getOuterModuleDeclaration(regExpArgs) {
+    const [, moduleContent] = regExpArgs;
+
+    return moduleContent.replace(TAB_INDENT, '');
 }

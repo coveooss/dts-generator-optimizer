@@ -35,8 +35,8 @@ gulp.task('declarations:generate', () =>
 gulp.task('declarations:optimize', () =>
     gulp.src('dist/my-project.d.ts')
         .pipe(optimizeDeclarations({
-            moduleName: 'react-vapor',
             libraryName: 'ReactVapor',
+            externalTypesToExport: ['redux-thunk'],
             internalImportPaths: ['src/', 'docs/'],
         }))
         .pipe(gulp.dest('dist'));
@@ -44,6 +44,6 @@ gulp.task('declarations:optimize', () =>
 ```
 
 ## Options
-- `moduleName: string`: The name of the module to export (should be the same as the package.json).
 - `libraryName: string`: The name of the exported UMD variable. 
 - `internalImportPaths: RegExp[]`: The import paths internal to your projects that will be parsed out and combined in a single module.
+- `externalTypesToExport: string[]`: The external library names whose types need to be exported.
