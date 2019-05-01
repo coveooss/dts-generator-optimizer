@@ -12,8 +12,7 @@ const IMPORTS = /import\s+(.+from\s+)?'(.+).*';/gm;
 const DYNAMIC_IMPORTS = /import\(['"]([\w./-]+)['"]\)\.(\w+)/g;
 const REFERENCES = /\s*\/\/\/\s+<reference\s+.*\/>/gm;
 const DEFAULT_EXPORTS = /export\sdefault\s.*$/gm;
-const INNER_MODULE_DECLARATION = /}\ndeclare\smodule\s+.*{\n/g;
-const OUTER_MODULE_DECLARATION = /^declare\smodule\s.+{\s([\s\S]*)}/;
+const MODULE_DECLARATION = /^declare\smodule\s.+{\s([\s\S]*?)^}$/gm;
 const PRIVATES = /private .+;$/gm;
 const RELATIVE_PATH = /^\.?\.\/.+$/;
 const DESTRUCTURE_IMPORT = /(?:(?:(\*\sas\s\w+)|{\s(.+)\s})\sfrom\s)?'([\w./@-]+)'/;
@@ -43,8 +42,7 @@ module.exports = config =>
             .replace(REFERENCES, '')
             .replace(DEFAULT_EXPORTS, '')
             .replace(BLANKLINES, '')
-            .replace(INNER_MODULE_DECLARATION, '')
-            .replace(OUTER_MODULE_DECLARATION, (...regExpArgs) => getOuterModuleDeclaration(regExpArgs))
+            .replace(MODULE_DECLARATION, (...regExpArgs) => getOuterModuleDeclaration(regExpArgs))
             .replace(EMPTY_BRACES, '{}')
             .replace(BLANKLINES, '');
 
