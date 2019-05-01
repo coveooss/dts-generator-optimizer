@@ -7,7 +7,7 @@ const defaultImportObj = {
     global: '',
 };
 
-const BLANKLINES = /^\s*[\r\n]/gm;
+const BLANKLINES = /^\s*[\r\n]+/gm;
 const IMPORTS = /import\s+(.+from\s+)?'(.+).*';/gm;
 const DYNAMIC_IMPORTS = /import\(['"]([\w./-]+)['"]\)\.(\w+)/g;
 const REFERENCES = /\s*\/\/\/\s+<reference\s+.*\/>/gm;
